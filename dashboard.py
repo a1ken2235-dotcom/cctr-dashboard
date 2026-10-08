@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 自訂 CSS (終極穿透寫法：確保 KPI 數值與標題強制放大並改色)
+# 自訂 CSS (新增過濾器標籤字體放大與變白)
 st.markdown("""
 <style>
     .block-container { padding-top: 1.5rem; padding-bottom: 0rem; }
@@ -23,11 +23,18 @@ st.markdown("""
     /* KPI 容器放大內邊距，容納更大的字體 */
     div[data-testid="metric-container"] { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
     
-    /* 1. KPI 標題 (Label) 放大 */
+    /* KPI 標題 (Label) 放大 */
     [data-testid="stMetricLabel"] * { color: #8b949e !important; font-size: 1.1rem !important; }
     
-    /* 2. KPI 數值 (Value) 放大 60% (約 3.5rem) 並強制改為紅色 */
+    /* KPI 數值 (Value) 放大 60% 並強制改為紅色 */
     [data-testid="stMetricValue"] * { color: #ff3366 !important; font-size: 3.5rem !important; font-weight: bold !important; line-height: 1.2 !important; }
+    
+    /* === 新增：將輸入框的標題(年份、攻擊領域等)放大50%並改為白色 === */
+    [data-testid="stWidgetLabel"] p {
+        font-size: 1.35rem !important; 
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
     
     header {visibility: hidden;}
     .marquee-container { background-color: #0d1117; border-bottom: 1px solid #30363d; padding: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #ff7b72; display: flex; align-items: center; }
@@ -104,7 +111,7 @@ t = {
     "fatalities_cnt": "Fatalities" if is_en else "死亡數"
 }
 
-# 渲染 Logo 圖片 (圖片尺寸跟隨區塊寬度放大 50%)
+# 渲染 Logo 圖片 
 with col_logo:
     try:
         st.image("logo.png", use_container_width=True)
