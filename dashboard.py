@@ -229,7 +229,7 @@ def get_domain(en_type):
 # 2. 讀取並處理資料
 @st.cache_data(ttl=60)
 def load_data():
-    SHEET_ID = "您的_GOOGLE_SHEET_ID_請貼在這邊"
+    SHEET_ID = "1wRQveuT6LsrasNzU_bNb1bW9MV0KVx2w3IsO6ZLdmVQ"
     SHEET_CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
     try:
         df = pd.read_csv(SHEET_CSV_URL)
