@@ -13,16 +13,22 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 自訂 CSS (修改 KPI 數值為紅色放大版，並強制圖表指標為箭頭)
+# 自訂 CSS (終極穿透寫法：確保 KPI 數值與標題強制放大並改色)
 st.markdown("""
 <style>
     .block-container { padding-top: 1.5rem; padding-bottom: 0rem; }
     .stApp { background-color: #0b111e; color: #e0e6ed; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     h1, h2, h3, h4, h5, h6 { color: #58a6ff; }
-    div[data-testid="metric-container"] { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-    div[data-testid="metric-container"] label { color: #8b949e; font-size: 0.9rem; }
-    /* 這裡控制 KPI 數值放大並改為紅色 */
-    div[data-testid="metric-container"] div[data-testid="stMetricValue"] { color: #ff3366 !important; font-size: 3.2rem !important; font-weight: bold; }
+    
+    /* KPI 容器放大內邊距，容納更大的字體 */
+    div[data-testid="metric-container"] { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    
+    /* 1. KPI 標題 (Label) 放大 */
+    [data-testid="stMetricLabel"] * { color: #8b949e !important; font-size: 1.1rem !important; }
+    
+    /* 2. KPI 數值 (Value) 放大 60% (約 3.5rem) 並強制改為紅色 */
+    [data-testid="stMetricValue"] * { color: #ff3366 !important; font-size: 3.5rem !important; font-weight: bold !important; line-height: 1.2 !important; }
+    
     header {visibility: hidden;}
     .marquee-container { background-color: #0d1117; border-bottom: 1px solid #30363d; padding: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #ff7b72; display: flex; align-items: center; }
     .marquee-label { font-weight: bold; margin-right: 15px; color: #ff7b72; white-space: nowrap; }
@@ -45,7 +51,7 @@ st_autorefresh(interval=300000, key="cctr_auto_refresher")
 # ==========================================
 # 頂部 Header、Logo & 語言選擇器整合
 # ==========================================
-col_logo, col_title, col_live, col_lang = st.columns([1, 6, 2, 2])
+col_logo, col_title, col_live, col_lang = st.columns([1.5, 6, 2, 1.5])
 
 with col_lang:
     selected_lang = st.selectbox("🌐", ["繁體中文", "English"], label_visibility="collapsed")
@@ -98,16 +104,17 @@ t = {
     "fatalities_cnt": "Fatalities" if is_en else "死亡數"
 }
 
-# 渲染 Logo 圖片
+# 渲染 Logo 圖片 (圖片尺寸跟隨區塊寬度放大 50%)
 with col_logo:
     try:
         st.image("logo.png", use_container_width=True)
     except Exception as e:
-        st.markdown("<div style='font-size: 3rem; text-align: center; margin-top: -10px;'>🛡️</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 4.5rem; text-align: center; margin-top: -10px;'>🛡️</div>", unsafe_allow_html=True)
 
+# 標題強制置中對齊
 with col_title:
-    st.markdown(f"<h2 style='margin-bottom: 0px;'>{t['title']}</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #8b949e; font-size: 0.8rem; margin-top: 0px;'>{t['subtitle']}</p>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='margin-bottom: 0px; text-align: center;'>{t['title']}</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #8b949e; font-size: 0.8rem; margin-top: 0px; text-align: center;'>{t['subtitle']}</p>", unsafe_allow_html=True)
     
 with col_live:
     st.markdown("<div style='text-align: right; color: #3fb950; font-weight: bold; margin-top: 15px;'>● LIVE MONITOR</div>", unsafe_allow_html=True)
@@ -222,7 +229,7 @@ def get_domain(en_type):
 # 2. 讀取並處理資料
 @st.cache_data(ttl=60)
 def load_data():
-    SHEET_ID = "1wRQveuT6LsrasNzU_bNb1bW9MV0KVx2w3IsO6ZLdmVQ"
+    SHEET_ID = "您的_GOOGLE_SHEET_ID_請貼在這邊"
     SHEET_CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
     try:
         df = pd.read_csv(SHEET_CSV_URL)
@@ -321,7 +328,6 @@ with c_row1_col1:
         fig_trend.add_trace(go.Bar(x=trend_df['year'], y=trend_df['事件數'], name=t['events_cnt'], marker_color='#00f0ff'))
         fig_trend.add_trace(go.Scatter(x=trend_df['year'], y=trend_df['死亡數'], name=t['fatalities_cnt'], yaxis='y2', mode='lines+markers', line=dict(color='#ff3366', width=3)))
         
-        # 加入 dragmode=False 以確保游標為箭頭
         fig_trend.update_layout(
             dragmode=False,
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#8b949e'), 
@@ -340,7 +346,6 @@ with c_row1_col2:
         fig_pie = px.pie(type_counts, values='次數', names='攻擊類型', hole=0.6, color_discrete_sequence=px.colors.qualitative.Set1)
         fig_pie.update_traces(textposition='inside', textinfo='percent')
         
-        # 加入 dragmode=False
         fig_pie.update_layout(
             dragmode=False,
             annotations=[dict(text=f"<span style='font-size: 28px; color: white; font-weight:bold;'>{len(df_filtered)}</span><br><span style='font-size: 13px; color: #8b949e;'>{t['events_cnt']}</span>", x=0.5, y=0.5, font_size=20, showarrow=False)], 
@@ -358,7 +363,6 @@ with c_row2_col1:
         country_counts = country_counts.sort_values(by='事件數', ascending=True)
         fig_bar = px.bar(country_counts, x='事件數', y='國家', orientation='h', color_discrete_sequence=['#00f0ff'])
         
-        # 加入 dragmode=False
         fig_bar.update_layout(
             dragmode=False,
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e0e6ed', size=12),
