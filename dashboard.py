@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 自訂 CSS 
+# 自訂 CSS (修改 KPI 數值為紅色放大版，並強制圖表指標為箭頭)
 st.markdown("""
 <style>
     .block-container { padding-top: 1.5rem; padding-bottom: 0rem; }
@@ -21,8 +21,9 @@ st.markdown("""
     h1, h2, h3, h4, h5, h6 { color: #58a6ff; }
     div[data-testid="metric-container"] { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
     div[data-testid="metric-container"] label { color: #8b949e; font-size: 0.9rem; }
-    div[data-testid="metric-container"] div[data-testid="stMetricValue"] { color: #ffffff; font-size: 2.2rem; font-weight: bold; }
-    {visibility: hidden;}
+    /* 這裡控制 KPI 數值放大並改為紅色 */
+    div[data-testid="metric-container"] div[data-testid="stMetricValue"] { color: #ff3366 !important; font-size: 3.2rem !important; font-weight: bold; }
+    header {visibility: hidden;}
     .marquee-container { background-color: #0d1117; border-bottom: 1px solid #30363d; padding: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #ff7b72; display: flex; align-items: center; }
     .marquee-label { font-weight: bold; margin-right: 15px; color: #ff7b72; white-space: nowrap; }
     .cctr-table .details-row { display: none; }
@@ -32,22 +33,27 @@ st.markdown("""
     .cctr-table .arrow { display: inline-block; transition: transform 0.2s; font-size: 0.75rem; margin-right: 5px; color: #58a6ff; }
     .cctr-table label { cursor: pointer; display: block; width: 100%; height: 100%; margin: 0; }
     .cctr-table tr.main-row:hover { background-color: #161b22; }
+    
+    /* 強制確保所有 Plotly 圖表的游標預設為箭頭 */
+    .js-plotly-plot .plotly .cursor-crosshair { cursor: default !important; }
+    .js-plotly-plot .plotly .nsewdrag { cursor: default !important; }
 </style>
 """, unsafe_allow_html=True)
 
 st_autorefresh(interval=300000, key="cctr_auto_refresher")
 
 # ==========================================
-# 雙語系統與翻譯核心引擎
+# 頂部 Header、Logo & 語言選擇器整合
 # ==========================================
-col_title, col_live, col_lang = st.columns([1, 6, 2, 2])
+col_logo, col_title, col_live, col_lang = st.columns([1, 6, 2, 2])
+
 with col_lang:
     selected_lang = st.selectbox("🌐", ["繁體中文", "English"], label_visibility="collapsed")
 is_en = selected_lang == "English"
 
 # 介面 UI 字典
 t = {
-    "title": "CCTR COUNTER-TERRORISM DASHBOARD" if is_en else "反恐情報︱資訊 CCTR",
+    "title": "CCTR COUNTER-TERRORISM DASHBOARD" if is_en else "反恐情報儀表板 CCTR",
     "subtitle": "COUNTER-TERRORISM INTELLIGENCE DATABASE",
     "marquee": "🚨 MAJOR EVENTS" if is_en else "🚨 重大事件",
     "unknown_date": "Unknown Date" if is_en else "未知日期",
@@ -66,7 +72,6 @@ t = {
     "kpi3": "Impacted countries" if is_en else "波及國家/地區 / Impacted countries",
     "kpi4": "Identified actors" if is_en else "涉案行為者 / Identified actors",
     "kpi5": "Zero-fatality plots" if is_en else "零傷亡案件 / Zero-fatality plots",
-    "map_title": "GLOBAL THREAT MAP" if is_en else "全球威脅分佈地圖",
     "trend": "YEARLY TREND" if is_en else "年度趨勢 / YEARLY TREND",
     "vectors": "ATTACK VECTORS" if is_en else "攻擊類型分佈 / ATTACK VECTORS",
     "top_countries": "TOP 10 RISK COUNTRIES" if is_en else "高風險國家/地區 TOP 10",
@@ -92,13 +97,12 @@ t = {
     "events_cnt": "Incidents" if is_en else "事件數",
     "fatalities_cnt": "Fatalities" if is_en else "死亡數"
 }
+
 # 渲染 Logo 圖片
 with col_logo:
     try:
-        # 讀取並顯示剛上傳的 logo.png，並自動適應欄位寬度
         st.image("logo.png", use_container_width=True)
     except Exception as e:
-        # 如果找不到圖片（例如檔名打錯），顯示一個大盾牌避免程式崩潰
         st.markdown("<div style='font-size: 3rem; text-align: center; margin-top: -10px;'>🛡️</div>", unsafe_allow_html=True)
 
 with col_title:
@@ -107,7 +111,8 @@ with col_title:
     
 with col_live:
     st.markdown("<div style='text-align: right; color: #3fb950; font-weight: bold; margin-top: 15px;'>● LIVE MONITOR</div>", unsafe_allow_html=True)
-# 資料正規化字典：將所有來源轉換為標準英文 (擴充城市名)
+
+# 資料正規化字典
 TO_EN = {
     "美國": "United States", "usa": "United States", "us": "United States",
     "英國": "United Kingdom", "uk": "United Kingdom", "england": "United Kingdom",
@@ -121,8 +126,6 @@ TO_EN = {
     "義大利": "Italy", "意大利": "Italy", "約旦空域": "Jordan Airspace",
     "馬來西亞": "Malaysia", "美國 / 全球": "USA / Global", "美國/全球": "USA / Global",
     "約旦河西岸": "West Bank", "西岸": "West Bank",
-    
-    # 城市與地區擴充
     "紐約": "New York", "倫敦": "London", "倫敦 / 曼徹斯特": "London / Manchester",
     "曼徹斯特": "Manchester", "費爾福德": "Fairford", "安曼 / 途中": "Amman / En Route",
     "摩德納": "Modena", "錫斯坦和俾路支斯坦": "Sistan and Baluchestan", "伊斯坦堡": "Istanbul",
@@ -137,8 +140,6 @@ TO_EN = {
     "利雅德": "Riyadh", "riyadh": "Riyadh",
     "坦克與拉基馬瓦特": "Tank & Lakki Marwat", "tank & lakki marwat": "Tank & Lakki Marwat",
     "多個省份": "Multiple Provinces", "multiple provinces": "Multiple Provinces",
-    
-    # 攻擊類型擴充
     "身份驗證繞過與關鍵基礎設施入侵": "Authentication Bypass & Critical Infrastructure Compromise",
     "針對性反恐行動": "Targeted Counter-Terrorism Operation",
     "武裝襲擊": "Armed Assault", "武裝襲擊/槍擊": "Armed Assault", "槍擊案": "Armed Assault",
@@ -156,7 +157,7 @@ TO_EN = {
     "未遂陰謀/活動": "Foiled Plot / Activity", "綁架": "Kidnapping",
 }
 
-# 資料顯示字典：將標準英文對應回繁體中文 (擴充城市名)
+# 資料顯示字典
 TO_ZH = {
     "United States": "美國", "United Kingdom": "英國", "Somalia": "索馬利亞",
     "Nigeria": "奈及利亞", "Saudi Arabia": "沙烏地阿拉伯", "China": "中國", "Iraq": "伊拉克",
@@ -167,8 +168,6 @@ TO_ZH = {
     "Ukraine": "烏克蘭", "India": "印度", "Multiple": "多個地區",
     "International (UN)": "國際 (聯合國)", "Italy": "義大利", "Jordan Airspace": "約旦空域",
     "Malaysia": "馬來西亞", "USA / Global": "美國 / 全球", "West Bank": "約旦河西岸",
-    
-    # 城市與地區擴充
     "New York": "紐約", "London": "倫敦", "London / Manchester": "倫敦 / 曼徹斯特",
     "Manchester": "曼徹斯特", "Fairford": "費爾福德", "Amman / En Route": "安曼 / 途中",
     "Modena": "摩德納", "Sistan and Baluchestan": "錫斯坦和俾路支斯坦", "Istanbul": "伊斯坦堡",
@@ -176,8 +175,6 @@ TO_ZH = {
     "Abha / Riyadh": "艾卜哈 / 利雅德", "Fort Worth": "沃斯堡", "Baghdad": "巴格達",
     "Milton Keynes": "米爾頓凱恩斯", "Strait of Hormuz": "霍爾木茲海峽", "Riyadh": "利雅德",
     "Tank & Lakki Marwat": "坦克與拉基馬瓦特", "Multiple Provinces": "多個省份",
-    
-    # 攻擊類型擴充
     "Authentication Bypass & Critical Infrastructure Compromise": "身份驗證繞過與基礎設施入侵",
     "Targeted Counter-Terrorism Operation": "針對性反恐行動", "Armed Assault": "武裝襲擊",
     "Drone & Missile Strike": "無人機與導彈襲擊", "Threat Preparedness / Policy": "防範準備與政策",
@@ -222,12 +219,6 @@ def get_domain(en_type):
         return "Cyber"
     return "Physical"
 
-with col_title:
-    st.markdown(f"<h2 style='margin-bottom: 0px;'>{t['title']}</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #8b949e; font-size: 0.8rem; margin-top: 0px;'>{t['subtitle']}</p>", unsafe_allow_html=True)
-with col_live:
-    st.markdown("<div style='text-align: right; color: #3fb950; font-weight: bold; margin-top: 15px;'>● LIVE MONITOR</div>", unsafe_allow_html=True)
-
 # 2. 讀取並處理資料
 @st.cache_data(ttl=60)
 def load_data():
@@ -259,18 +250,15 @@ if df_raw.empty:
     st.error("⚠️ 無法讀取資料，請檢查 Google Sheet ID 是否正確。")
     st.stop()
 
-# 背景建立標準英文欄位供引擎與地圖使用
 df_raw['country_en_standard'] = df_raw['country'].apply(normalize_en)
 df_raw['type_en_standard'] = df_raw['attack_type'].apply(normalize_en)
 df_raw['domain_en'] = df_raw['type_en_standard'].apply(get_domain)
 
-# 套用最終顯示語言翻譯
 df_raw['country'] = df_raw['country'].apply(lambda x: to_display(x, is_en))
 df_raw['city'] = df_raw['city'].apply(lambda x: to_display(x, is_en))
 df_raw['attack_type'] = df_raw['attack_type'].apply(lambda x: to_display(x, is_en))
 df_raw['domain'] = df_raw['domain_en'].map({"Cyber": t['cyber'], "Physical": t['physical']})
 
-# 跑馬燈
 latest_events = df_raw.sort_values(by='incident_date', ascending=False).head(5)
 marquee_text = " • ".join([f"{row['incident_date'].strftime('%Y-%m-%d') if pd.notnull(row['incident_date']) else t['unknown_date']} {row['country']} {row['fatalities']} {t['dead']}" for index, row in latest_events.iterrows()])
 st.markdown(f"<div class='marquee-container'><div class='marquee-label'>{t['marquee']}</div><marquee scrollamount='5'>{marquee_text}</marquee></div>", unsafe_allow_html=True)
@@ -322,32 +310,7 @@ kpi5.metric(t['kpi5'], len(df_filtered[df_filtered['fatalities'] == 0]))
 st.write("") 
 
 # ==========================================
-# 全球威脅地圖 
-# ==========================================
-st.markdown(f"<div style='color: #58a6ff; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px;'>{t['map_title']}</div>", unsafe_allow_html=True)
-if not df_filtered.empty:
-    map_df = df_filtered.groupby(['country_en_standard', 'country']).agg(
-        events=('country', 'count'), fatalities=('fatalities', 'sum')
-    ).reset_index()
-    
-    map_df = map_df.rename(columns={'events': t['events_cnt'], 'fatalities': t['fatalities_cnt']})
-    
-    fig_map = px.scatter_geo(
-        map_df, locations="country_en_standard", locationmode="country names",
-        size=t['events_cnt'], hover_name="country", hover_data={"country_en_standard": False, t['fatalities_cnt']: True},
-        color_discrete_sequence=['#ff3366'], size_max=35
-    )
-    fig_map.update_geos(
-        showframe=False, showcoastlines=True, coastlinecolor="#30363d", projection_type="equirectangular", 
-        bgcolor='rgba(0,0,0,0)', landcolor='#161b22', oceancolor='#0b111e', showocean=True, showlakes=False
-    )
-    fig_map.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(l=0, r=0, t=10, b=0), height=450, font=dict(color='#8b949e'))
-    st.plotly_chart(fig_map, use_container_width=True, config={'displayModeBar': False})
-
-st.write("") 
-
-# ==========================================
-# 圖表區塊 
+# 圖表區塊 (趨勢、分佈、國家、行為者)
 # ==========================================
 c_row1_col1, c_row1_col2 = st.columns([5, 5])
 with c_row1_col1:
@@ -357,7 +320,10 @@ with c_row1_col1:
         fig_trend = go.Figure()
         fig_trend.add_trace(go.Bar(x=trend_df['year'], y=trend_df['事件數'], name=t['events_cnt'], marker_color='#00f0ff'))
         fig_trend.add_trace(go.Scatter(x=trend_df['year'], y=trend_df['死亡數'], name=t['fatalities_cnt'], yaxis='y2', mode='lines+markers', line=dict(color='#ff3366', width=3)))
+        
+        # 加入 dragmode=False 以確保游標為箭頭
         fig_trend.update_layout(
+            dragmode=False,
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#8b949e'), 
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), 
             yaxis=dict(title=t['events_cnt'], showgrid=False, tickformat='d'), 
@@ -373,7 +339,13 @@ with c_row1_col2:
         type_counts.columns = ['攻擊類型', '次數']
         fig_pie = px.pie(type_counts, values='次數', names='攻擊類型', hole=0.6, color_discrete_sequence=px.colors.qualitative.Set1)
         fig_pie.update_traces(textposition='inside', textinfo='percent')
-        fig_pie.update_layout(annotations=[dict(text=f"<span style='font-size: 28px; color: white; font-weight:bold;'>{len(df_filtered)}</span><br><span style='font-size: 13px; color: #8b949e;'>{t['events_cnt']}</span>", x=0.5, y=0.5, font_size=20, showarrow=False)], paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#8b949e'), showlegend=False, margin=dict(l=20, r=20, t=20, b=20), height=380)
+        
+        # 加入 dragmode=False
+        fig_pie.update_layout(
+            dragmode=False,
+            annotations=[dict(text=f"<span style='font-size: 28px; color: white; font-weight:bold;'>{len(df_filtered)}</span><br><span style='font-size: 13px; color: #8b949e;'>{t['events_cnt']}</span>", x=0.5, y=0.5, font_size=20, showarrow=False)], 
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#8b949e'), showlegend=False, margin=dict(l=20, r=20, t=20, b=20), height=380
+        )
         st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
 
 st.write("") 
@@ -385,7 +357,10 @@ with c_row2_col1:
         country_counts.columns = ['國家', '事件數']
         country_counts = country_counts.sort_values(by='事件數', ascending=True)
         fig_bar = px.bar(country_counts, x='事件數', y='國家', orientation='h', color_discrete_sequence=['#00f0ff'])
+        
+        # 加入 dragmode=False
         fig_bar.update_layout(
+            dragmode=False,
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e0e6ed', size=12),
             xaxis=dict(showgrid=True, gridcolor='#30363d', title="", tickformat='d'), yaxis=dict(showgrid=False, title=""),
             margin=dict(l=0, r=0, t=10, b=0), height=320
