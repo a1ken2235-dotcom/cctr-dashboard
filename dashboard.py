@@ -22,7 +22,7 @@ st.markdown("""
     div[data-testid="metric-container"] { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
     div[data-testid="metric-container"] label { color: #8b949e; font-size: 0.9rem; }
     div[data-testid="metric-container"] div[data-testid="stMetricValue"] { color: #ffffff; font-size: 2.2rem; font-weight: bold; }
-    header {visibility: hidden;}
+    {visibility: hidden;}
     .marquee-container { background-color: #0d1117; border-bottom: 1px solid #30363d; padding: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #ff7b72; display: flex; align-items: center; }
     .marquee-label { font-weight: bold; margin-right: 15px; color: #ff7b72; white-space: nowrap; }
     .cctr-table .details-row { display: none; }
@@ -40,7 +40,7 @@ st_autorefresh(interval=300000, key="cctr_auto_refresher")
 # ==========================================
 # 雙語系統與翻譯核心引擎
 # ==========================================
-col_title, col_live, col_lang = st.columns([6, 2, 2])
+col_title, col_live, col_lang = st.columns([1, 6, 2, 2])
 with col_lang:
     selected_lang = st.selectbox("🌐", ["繁體中文", "English"], label_visibility="collapsed")
 is_en = selected_lang == "English"
@@ -92,7 +92,21 @@ t = {
     "events_cnt": "Incidents" if is_en else "事件數",
     "fatalities_cnt": "Fatalities" if is_en else "死亡數"
 }
+# 渲染 Logo 圖片
+with col_logo:
+    try:
+        # 讀取並顯示剛上傳的 logo.png，並自動適應欄位寬度
+        st.image("logo.png", use_container_width=True)
+    except Exception as e:
+        # 如果找不到圖片（例如檔名打錯），顯示一個大盾牌避免程式崩潰
+        st.markdown("<div style='font-size: 3rem; text-align: center; margin-top: -10px;'>🛡️</div>", unsafe_allow_html=True)
 
+with col_title:
+    st.markdown(f"<h2 style='margin-bottom: 0px;'>{t['title']}</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #8b949e; font-size: 0.8rem; margin-top: 0px;'>{t['subtitle']}</p>", unsafe_allow_html=True)
+    
+with col_live:
+    st.markdown("<div style='text-align: right; color: #3fb950; font-weight: bold; margin-top: 15px;'>● LIVE MONITOR</div>", unsafe_allow_html=True)
 # 資料正規化字典：將所有來源轉換為標準英文 (擴充城市名)
 TO_EN = {
     "美國": "United States", "usa": "United States", "us": "United States",
