@@ -7,7 +7,7 @@ import urllib.parse
 
 # 1. 頁面基礎配置
 st.set_page_config(
-    page_title="反恐情報儀表板 CCTR",
+    page_title="CCTR 反恐資訊︱情報儀表 ",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="collapsed"
