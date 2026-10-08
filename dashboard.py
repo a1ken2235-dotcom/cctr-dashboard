@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 自訂 CSS (新增過濾器標籤字體放大與變白)
+# 自訂 CSS (包含過濾器放大、跑馬燈字體放大 30%)
 st.markdown("""
 <style>
     .block-container { padding-top: 1.5rem; padding-bottom: 0rem; }
@@ -29,7 +29,7 @@ st.markdown("""
     /* KPI 數值 (Value) 放大 60% 並強制改為紅色 */
     [data-testid="stMetricValue"] * { color: #ff3366 !important; font-size: 3.5rem !important; font-weight: bold !important; line-height: 1.2 !important; }
     
-    /* === 新增：將輸入框的標題(年份、攻擊領域等)放大50%並改為白色 === */
+    /* 將輸入框的標題(年份、攻擊領域等)放大並改為白色 */
     [data-testid="stWidgetLabel"] p {
         font-size: 1.35rem !important; 
         color: #ffffff !important;
@@ -37,8 +37,26 @@ st.markdown("""
     }
     
     header {visibility: hidden;}
-    .marquee-container { background-color: #0d1117; border-bottom: 1px solid #30363d; padding: 8px; margin-bottom: 20px; font-size: 0.85rem; color: #ff7b72; display: flex; align-items: center; }
-    .marquee-label { font-weight: bold; margin-right: 15px; color: #ff7b72; white-space: nowrap; }
+    
+    /* 走馬燈區塊字體放大 30% */
+    .marquee-container { 
+        background-color: #0d1117; 
+        border-bottom: 1px solid #30363d; 
+        padding: 12px 10px; /* 增加一點內邊距配合大字體 */
+        margin-bottom: 20px; 
+        font-size: 1.15rem; /* 從 0.85rem 放大 */
+        color: #ff7b72; 
+        display: flex; 
+        align-items: center; 
+    }
+    .marquee-label { 
+        font-weight: bold; 
+        margin-right: 15px; 
+        color: #ff7b72; 
+        white-space: nowrap; 
+        font-size: 1.15rem; /* 同步放大標題 */
+    }
+    
     .cctr-table .details-row { display: none; }
     .cctr-table tr:has(.row-toggle:checked) + .details-row { display: table-row; }
     .cctr-table tr:has(.row-toggle:checked) { background-color: #1c2128 !important; }
@@ -273,9 +291,12 @@ df_raw['city'] = df_raw['city'].apply(lambda x: to_display(x, is_en))
 df_raw['attack_type'] = df_raw['attack_type'].apply(lambda x: to_display(x, is_en))
 df_raw['domain'] = df_raw['domain_en'].map({"Cyber": t['cyber'], "Physical": t['physical']})
 
-latest_events = df_raw.sort_values(by='incident_date', ascending=False).head(5)
+# ==========================================
+# 走馬燈：抓取最新 20 筆事件，無限循環
+# ==========================================
+latest_events = df_raw.sort_values(by='incident_date', ascending=False).head(20)
 marquee_text = " • ".join([f"{row['incident_date'].strftime('%Y-%m-%d') if pd.notnull(row['incident_date']) else t['unknown_date']} {row['country']} {row['fatalities']} {t['dead']}" for index, row in latest_events.iterrows()])
-st.markdown(f"<div class='marquee-container'><div class='marquee-label'>{t['marquee']}</div><marquee scrollamount='5'>{marquee_text}</marquee></div>", unsafe_allow_html=True)
+st.markdown(f"<div class='marquee-container'><div class='marquee-label'>{t['marquee']}</div><marquee scrollamount='5' loop='infinite'>{marquee_text}</marquee></div>", unsafe_allow_html=True)
 
 # ==========================================
 # 篩選條件區 
