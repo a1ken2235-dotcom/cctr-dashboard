@@ -84,7 +84,7 @@ is_en = selected_lang == "English"
 
 # 介面 UI 字典
 t = {
-    "title": "CCTR COUNTER-TERRORISM DASHBOARD" if is_en else "反恐情報儀表板 CCTR",
+    "title": "CCTR COUNTER-TERRORISM DASHBOARD" if is_en else "CCTR 反恐資訊︱情報儀表",
     "subtitle": "COUNTER-TERRORISM INTELLIGENCE DATABASE",
     "marquee": "🚨 MAJOR EVENTS" if is_en else "🚨 重大事件",
     "unknown_date": "Unknown Date" if is_en else "未知日期",
